@@ -1,0 +1,7 @@
+data_collection:
+  test_size: 0.30
+  random_state: 42
+
+model_building:
+  n_estimators: 100
+  min_samples_split: 2
