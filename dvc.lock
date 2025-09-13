@@ -5,53 +5,64 @@ stages:
     deps:
     - path: src/data_collection.py
       hash: md5
-      md5: 946f20b91cd1c4e7aab645b30b21a9a1
-      size: 637
+      md5: 07af4c03b9f279b7f47f4fa79c4ee7d6
+      size: 1943
+    - path: water_potability.csv
+      hash: md5
+      md5: a5eeae83d792e40da6c2f9e1eab945fc
+      size: 525187
     params:
       params.yaml:
         data_collection.test_size: 0.3
     outs:
-    - path: data/raw
+    - path: data/raw/test.csv
       hash: md5
-      md5: 43f22e8600c04238d0a8156861cff355.dir
-      size: 520443
-      nfiles: 2
+      md5: 4512ddec2b8f506fa7064bcc23d67b7c
+      size: 156622
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 7ae2fb73d33a889721ae8d1e2cb1c59d
+      size: 363821
   pre-processing:
     cmd: python src/data_prep.py
     deps:
-    - path: data/raw
+    - path: data/raw/test.csv
       hash: md5
-      md5: 43f22e8600c04238d0a8156861cff355.dir
-      size: 520443
-      nfiles: 2
+      md5: 4512ddec2b8f506fa7064bcc23d67b7c
+      size: 156622
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 7ae2fb73d33a889721ae8d1e2cb1c59d
+      size: 363821
     - path: src/data_prep.py
       hash: md5
-      md5: 46c9780adfcdf0e0f38bf9ccd063f0ad
-      size: 726
+      md5: df7fbfc966374f05c1afbf5a8296876f
+      size: 1817
     outs:
-    - path: data/processed
+    - path: data/processed/test_processed.csv
       hash: md5
-      md5: 1311f1d33abebd3154f23ea213f90a2c.dir
-      size: 544772
-      nfiles: 2
+      md5: 08041a27893e3410a0faca09c1d8de3e
+      size: 163458
+    - path: data/processed/train_processed.csv
+      hash: md5
+      md5: 926c710025fc309a12ce788c8be7625a
+      size: 381314
   model_building:
     cmd: python src/model_building.py
     deps:
-    - path: data/processed
+    - path: data/processed/train_processed.csv
       hash: md5
-      md5: 1311f1d33abebd3154f23ea213f90a2c.dir
-      size: 544772
-      nfiles: 2
+      md5: 926c710025fc309a12ce788c8be7625a
+      size: 381314
     - path: src/model_building.py
       hash: md5
-      md5: 25bc06a750c9ad1f77414f901e5e8ea7
-      size: 643
+      md5: 6d29cd34d34f4de30f924fdc1540c7d4
+      size: 2056
     params:
       params.yaml:
-        model_building.min_samples_split: 2
         model_building.n_estimators: 100
     outs:
-    - path: model.pkl
+    - path: models/model.pkl
       hash: md5
       md5: f3cc0bced022c789dd89dde4efafd972
       size: 6510232
@@ -70,4 +81,24 @@ stages:
     - path: metrics.json
       hash: md5
       md5: 90ff7413be44933b3547b52c826b1e81
+      size: 146
+  model_evaluation:
+    cmd: python src/model_eval.py
+    deps:
+    - path: data/processed/test_processed.csv
+      hash: md5
+      md5: 08041a27893e3410a0faca09c1d8de3e
+      size: 163458
+    - path: models/model.pkl
+      hash: md5
+      md5: f3cc0bced022c789dd89dde4efafd972
+      size: 6510232
+    - path: src/model_eval.py
+      hash: md5
+      md5: 1dc7032f6cd8bb16592d1e7c5ed0fe72
+      size: 2368
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: 51c538065c045169d3b021f86a1eb65a
       size: 146

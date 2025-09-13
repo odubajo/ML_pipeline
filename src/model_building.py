@@ -1,21 +1,62 @@
 import pandas as pd
-import numpy as np
-import os
 import yaml
-
 import pickle
-
+import os
 from sklearn.ensemble import RandomForestClassifier
 
-train_data = pd.read_csv("data/processed/train_processed.csv")
+def load_params(params_path: str) -> int:
+    try:
+        with open(params_path, "r") as file:
+            params = yaml.safe_load(file)
+        return params["model_building"]["n_estimators"]
+    except Exception as e:
+        raise Exception(f"Error loading parameters from {params_path}: {e}")
 
-n_estimators = yaml.safe_load(open("params.yaml"))['model_building']['n_estimators']
-min_samples_split = yaml.safe_load(open("params.yaml"))['model_building']['min_samples_split']
+def load_data(file_path: str) -> pd.DataFrame:
+    try:
+        return pd.read_csv(file_path)
+    except Exception as e:
+        raise Exception(f"Error loading data from {file_path}: {e}")
 
-y_train = train_data['Potability']
-X_train = train_data.drop(columns=['Potability'],axis=1)
+def prepare_data(data: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+    try:
+        X = data.drop(columns=['Potability'], axis=1)
+        y = data['Potability']
+        return X, y
+    except Exception as e:
+        raise Exception(f"Error preparing data: {e}")
 
-clf= RandomForestClassifier(n_estimators=n_estimators, min_samples_split=min_samples_split ,random_state=42)
-clf.fit(X_train, y_train)
+def train_model(X: pd.DataFrame, y: pd.Series, n_estimators: int) -> RandomForestClassifier:
+    try:
+        clf = RandomForestClassifier(n_estimators=n_estimators, random_state=42)
+        clf.fit(X, y)
+        return clf
+    except Exception as e:
+        raise Exception(f"Error training model: {e}")
 
-pickle.dump(clf,open("model.pkl","wb"))
+def save_model(model: RandomForestClassifier, model_name: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(model_name), exist_ok=True)
+        with open(model_name, "wb") as file:
+            pickle.dump(model, file)
+    except Exception as e:
+        raise Exception(f"Error saving model to {model_name}: {e}")
+
+def main():
+    try:
+        params_path = "params.yaml"
+        data_path = "./data/processed/train_processed.csv" 
+        model_name = "models/model.pkl"
+
+        n_estimators = load_params(params_path)
+        train_data = load_data(data_path)
+        X_train, y_train = prepare_data(train_data)
+
+        model = train_model(X_train, y_train, n_estimators)
+        save_model(model, model_name)
+        print("Model trained and saved successfully!")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
